@@ -1,0 +1,30 @@
+def compile_shader(shader_type, source_code):
+    shader = glCreateShader(shader_type)
+    glShaderSource(shader, source_code)
+    glCompileShader(shader)
+    
+    # Check for compilation errors
+    if not glGetShaderiv(shader, GL_COMPILE_STATUS):
+        print("Shader compilation failed!")
+        print(glGetShaderInfoLog(shader))
+    return shader
+
+def create_shader_program(vertex_shader_src, fragment_shader_src):
+    # Compile the shaders
+    vertex_shader = compile_shader(GL_VERTEX_SHADER, vertex_shader_src)
+    fragment_shader = compile_shader(GL_FRAGMENT_SHADER, fragment_shader_src)
+    
+    # Create the program and link shaders
+    program = glCreateProgram()
+    glAttachShader(program, vertex_shader)
+    glAttachShader(program, fragment_shader)
+    glLinkProgram(program)
+    
+    # Check for linking errors
+    if not glGetProgramiv(program, GL_LINK_STATUS):
+        print("Shader program linking failed!")
+        print(glGetProgramInfoLog(program))
+    
+    glUseProgram(program)  # Use the program
+    return program
+
