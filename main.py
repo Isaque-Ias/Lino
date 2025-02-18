@@ -1,75 +1,74 @@
-
-import pygame as pg
-from pygame.locals import *
+import pygame
 from OpenGL.GL import *
 import numpy as np
-from shader import create_shader_program, load_texture
+import glm
+import time
+from shader import compile_shader, create_shader_program, create_square, load_texture
 
-vertices = np.array([
-    -1.0, -1.0, 0.0,
-    1.0, -1.0, 0.0,
-    1.0, 1.0, 0.0,
-    -1.0, 1.0, 0.0,
-], dtype=np.float32)
-
-indices = np.array([0, 1, 2, 2, 3, 0], dtype=np.uint32)
-
-vertex_shader = ""
-fragment_shader = ""
-
+VERTEX_SHADER = ""
+FRAGMENT_SHADER = ""
 with open("vertex_shader.vsh", "r") as file:
-    vertex_shader = file.read()
-
+    VERTEX_SHADER = file.read()
 with open("fragment_shader.fsh", "r") as file:
-    fragment_shader = file.read()
+    FRAGMENT_SHADER = file.read()
 
-def start_shader():
-    shader_program = create_shader_program(vertex_shader, fragment_shader)
-    glUseProgram(shader_program)
-
-    VAO = glGenVertexArrays(1)
-    glBindVertexArray(VAO)
-    
-    VBO = glGenBuffers(1)
-    glBindBuffer(GL_ARRAY_BUFFER, VBO)
-    glBufferData(GL_ARRAY_BUFFER, vertices.nbytes, vertices, GL_STATIC_DRAW)
-    
-    EBO = glGenBuffers(1)
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO)
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.nbytes, indices, GL_STATIC_DRAW)
-    
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * vertices.itemsize, ctypes.c_void_p(0))
-    glEnableVertexAttribArray(0)
 
 def main():
-    pg.init()
-    display = (800, 600)
-    screen = pg.display.set_mode(display, DOUBLEBUF | OPENGL)
+    pygame.init()
+    pygame.display.set_mode((800, 600), pygame.OPENGL | pygame.DOUBLEBUF)
 
-    start_shader()
-
-    FPS = 60
-    clock = pg.time.Clock()
-
-    view_buffer = pg.surface.Surface(display)
+    shader_program = create_shader_program(VERTEX_SHADER, FRAGMENT_SHADER)
+    square_VAO = create_square()
     
-    running = True
-    while running:
-        for event in pg.event.get():
-            if event.type == pg.QUIT:
-                running = False
+    texture1 = load_texture("car.jpg")
+    texture2 = load_texture("car2.webp")
 
-        view_buffer.fill((255, 255, 255))
+    glUseProgram(shader_program)
+
+    transform_loc = glGetUniformLocation(shader_program, "transform")
+    texture_loc = glGetUniformLocation(shader_program, "ourTexture")
+
+    running = True
+    start_time = time.time()
+
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
 
         glClear(GL_COLOR_BUFFER_BIT)
 
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, None)
+        elapsed_time = time.time() - start_time
 
-        screen.blit(view_buffer, (0, 0))
-        pg.display.flip()
-        clock.tick(FPS)
+        transform1 = glm.translate(glm.mat4(1.0), glm.vec3(-0.6, 0.0, 0.0))
+        transform1 = glm.rotate(transform1, elapsed_time, glm.vec3(0.0, 0.0, 1.0))
 
-    pg.quit()
+        glUniformMatrix4fv(transform_loc, 1, GL_FALSE, glm.value_ptr(transform1))
+        glUniform1i(texture_loc, 0)
+
+        glActiveTexture(GL_TEXTURE0)
+        glBindTexture(GL_TEXTURE_2D, texture1)
+
+        glBindVertexArray(square_VAO)
+        glDrawArrays(GL_TRIANGLES, 0, 6)
+
+        #transforms
+        transform2 = glm.translate(glm.mat4(1.0), glm.vec3(0.6, 0.0, 0.0))
+        transform2 = glm.rotate(transform2, 0.2, glm.vec3(0.0, 0.0, 1.0))
+
+        glUniformMatrix4fv(transform_loc, 1, GL_FALSE, glm.value_ptr(transform2))
+        glUniform1i(texture_loc, 0)
+
+        glActiveTexture(GL_TEXTURE0)
+        glBindTexture(GL_TEXTURE_2D, texture2)
+
+        glBindVertexArray(square_VAO)
+        glDrawArrays(GL_TRIANGLES, 0, 6)
+
+        pygame.display.flip()
+        pygame.time.wait(10)
+
+    pygame.quit()
 
 if __name__ == "__main__":
     main()

@@ -1,8 +1,13 @@
-#version 330
-out vec4 fragColor;
+#version 330 core
+out vec4 FragColor;
+in vec2 TexCoord;
+
+uniform sampler2D ourTexture;
+uniform int colorMode;
+
 void main() {
-    fragColor = vec4(0.0, 0.0, 0.0, 0.0);
-    if(gl_FragCoord.x > 400.0) {
-        fragColor = vec4(0.0, 0.0, 1.0, 1.0);
+    FragColor = texture(ourTexture, TexCoord);
+    if(gl_FragCoord.x >= 300.0) {
+        discard;//FragColor = vec4(0.0, 0.0, 0.0, 0.0);
     }
 }
