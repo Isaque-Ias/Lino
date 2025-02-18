@@ -1,7 +1,10 @@
 from OpenGL.GL import *
-from OpenGL.GL.shaders import compileProgram, compileShader
 import pygame as pg
 import numpy as np
+
+def load_shader(path):
+    with open(path, "r") as file:
+        return file.read()
 
 def compile_shader(source, shader_type):
     shader = glCreateShader(shader_type)
@@ -32,14 +35,14 @@ def create_shader_program(vertex, fragment):
 def create_square():
     """Creates a textured square using two triangles."""
     vertices = np.array([
-        # Positions       # Texture Coords
-        -0.5, -0.5, 0.0,   0.0, 0.0,  # Bottom Left
-         0.5, -0.5, 0.0,   1.0, 0.0,  # Bottom Right
-         0.5,  0.5, 0.0,   1.0, 1.0,  # Top Right
+        #pos       #coords
+        -1.0, -1.0, 0.0,   0.0, 0.0,  #bottom left
+         1.0, -1.0, 0.0,   1.0, 0.0,  #bottom right
+         1.0,  1.0, 0.0,   1.0, 1.0,  #top right
 
-        -0.5, -0.5, 0.0,   0.0, 0.0,  # Bottom Left
-         0.5,  0.5, 0.0,   1.0, 1.0,  # Top Right
-        -0.5,  0.5, 0.0,   0.0, 1.0   # Top Left
+        -1.0, -1.0, 0.0,   0.0, 0.0,  #bottom left
+         1.0,  1.0, 0.0,   1.0, 1.0,  #top right
+        -1.0,  1.0, 0.0,   0.0, 1.0   #top left
     ], dtype=np.float32)
 
     VAO = glGenVertexArrays(1)
@@ -50,11 +53,9 @@ def create_square():
     glBindBuffer(GL_ARRAY_BUFFER, VBO)
     glBufferData(GL_ARRAY_BUFFER, vertices.nbytes, vertices, GL_STATIC_DRAW)
 
-    # Position Attribute
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * vertices.itemsize, None)
     glEnableVertexAttribArray(0)
 
-    # Texture Coordinate Attribute
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * vertices.itemsize, ctypes.c_void_p(3 * vertices.itemsize))
     glEnableVertexAttribArray(1)
 
@@ -73,9 +74,8 @@ def load_texture(path):
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
 
     image = pg.image.load(path)
-    image = pg.transform.flip(image, False, True)  # Flip to match OpenGL coordinates
+    # image = pg.transform.scale(image, (1, 1))
     img_data = pg.image.tostring(image, "RGBA", True)
-
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.get_width(), image.get_height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, img_data)
     glGenerateMipmap(GL_TEXTURE_2D)
 
