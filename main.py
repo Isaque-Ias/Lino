@@ -9,7 +9,7 @@ VERTEX_SHADER = load_shader("vertex_shader.vsh")
 FRAGMENT_SHADER = load_shader("fragment_shader.fsh")
 
 class UIHandler:
-    window_size = (1600, 900)
+    window_size = (1200, 675)
     mouse_x = 0
     mouse_y = 0
     click_x = 0
@@ -29,6 +29,7 @@ class UIHandler:
     padding = 15
 
     mouse_at = ""
+    fix_mouse_at = False
 
     def handle():
         global mouse_x
@@ -40,7 +41,6 @@ class UIHandler:
         mouse_x, mouse_y = pg.mouse.get_pos()
         mouse_hold = pg.mouse.get_pressed()
 
-        print(UIHandler.mouse_at)
         if mouse_hold[0]:
             if mouse_pressed:
                 click_x = mouse_x
@@ -50,6 +50,7 @@ class UIHandler:
                 if not UIHandler.mouse_at == "":
                     UIHandler.game_window_size_click = [UIHandler.game_window_size[0], UIHandler.game_window_size[1]]
                     UIHandler.element_window_width_click = UIHandler.element_window_width
+                UIHandler.fix_mouse_at = True
 
             if UIHandler.mouse_at == "game_window_size_side":
                 UIHandler.game_window_size[0] = min(UIHandler.game_window_size_max[0], max(UIHandler.game_window_size_min[0], click_x - mouse_x + UIHandler.game_window_size_click[0]))
@@ -62,8 +63,10 @@ class UIHandler:
                 UIHandler.element_window_width = min(UIHandler.element_window_width_max, max(UIHandler.element_window_width_min, mouse_x + UIHandler.element_window_width_click - click_x))
         else:
             mouse_pressed = True
+            UIHandler.fix_mouse_at = False
 
-        UIHandler.mouse_at = ""
+        if not UIHandler.fix_mouse_at:
+            UIHandler.mouse_at = ""
 
         pg.mouse.set_cursor(pg.SYSTEM_CURSOR_ARROW)
         
@@ -72,35 +75,40 @@ class UIHandler:
                      UIHandler.window_size[0] - UIHandler.padding - UIHandler.game_window_size[0],
                      UIHandler.padding + UIHandler.game_window_size[1]):
             pg.mouse.set_cursor(pg.SYSTEM_CURSOR_HAND)
-            UIHandler.mouse_at = "game_window_size_side"
+            if not UIHandler.fix_mouse_at:
+                UIHandler.mouse_at = "game_window_size_side"
             
         if mouse_box(UIHandler.window_size[0] - UIHandler.padding * 2 - UIHandler.game_window_size[0],
                      UIHandler.padding * 2 + UIHandler.game_window_size[1],
                      UIHandler.window_size[0] - UIHandler.padding - UIHandler.game_window_size[0],
                      UIHandler.window_size[1] - UIHandler.padding):
             pg.mouse.set_cursor(pg.SYSTEM_CURSOR_HAND)
-            UIHandler.mouse_at = "game_window_size_side"
+            if not UIHandler.fix_mouse_at:
+                UIHandler.mouse_at = "game_window_size_side"
 
         if mouse_box(UIHandler.window_size[0] - UIHandler.padding * 2 - UIHandler.game_window_size[0],
                      UIHandler.padding + UIHandler.game_window_size[1],
                      UIHandler.window_size[0] - UIHandler.padding - UIHandler.game_window_size[0],
                      UIHandler.padding * 2 + UIHandler.game_window_size[1]):
             pg.mouse.set_cursor(pg.SYSTEM_CURSOR_HAND)
-            UIHandler.mouse_at = "game_window_size_full"
+            if not UIHandler.fix_mouse_at:
+                UIHandler.mouse_at = "game_window_size_full"
 
         if mouse_box(UIHandler.window_size[0] - UIHandler.padding - UIHandler.game_window_size[0],
                      UIHandler.padding + UIHandler.game_window_size[1],
                      UIHandler.window_size[0] - UIHandler.padding,
                      UIHandler.padding * 2 + UIHandler.game_window_size[1]):
             pg.mouse.set_cursor(pg.SYSTEM_CURSOR_HAND)
-            UIHandler.mouse_at = "game_window_size_down"
+            if not UIHandler.fix_mouse_at:
+                UIHandler.mouse_at = "game_window_size_down"
 
         if mouse_box(UIHandler.padding + UIHandler.element_window_width,
                      UIHandler.padding,
                      UIHandler.padding * 2 + UIHandler.element_window_width,
                      UIHandler.window_size[1] - UIHandler.padding):
             pg.mouse.set_cursor(pg.SYSTEM_CURSOR_HAND)
-            UIHandler.mouse_at = "element_window_width"
+            if not UIHandler.fix_mouse_at:
+                UIHandler.mouse_at = "element_window_width"
 
 def mouse_box(x1, y1, x2, y2):
     if mouse_x >= x1 and mouse_x <= x2 and mouse_y >= y1 and mouse_y <= y2:
