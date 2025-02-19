@@ -26,10 +26,17 @@ class UIHandler:
     element_window_width_min = 200
     element_window_width_max = 400
 
+    element_list_height = 2000
+
     padding = 15
+
+    bar_width = 20
+    bar_padding = 5
 
     mouse_at = ""
     fix_mouse_at = False
+
+    current_category = [0.496, 0.351, 1.0, 1.0]
 
     def handle():
         global mouse_x
@@ -133,7 +140,11 @@ def main():
     window_size_loc = glGetUniformLocation(shader_program, "windowSize")
     game_window_size_loc = glGetUniformLocation(shader_program, "gameWindowSize")
     padding_loc = glGetUniformLocation(shader_program, "padding")
+    bar_width_loc = glGetUniformLocation(shader_program, "barWidth")
+    bar_padding_loc = glGetUniformLocation(shader_program, "barPadding")
     element_window_width_loc = glGetUniformLocation(shader_program, "elementWindowWidth")
+    current_category_loc = glGetUniformLocation(shader_program, "currentCategory")
+    element_list_height_loc = glGetUniformLocation(shader_program, "elementListHeight")
 
     running = True
     start_time = time.time()
@@ -169,7 +180,7 @@ def main():
 
         transform2 = glm.mat4(1.0)
         transform2 = glm.translate(transform2, glm.vec3(game_screen_center[0], -game_screen_center[1], 0.0))
-        transform2 = glm.scale(transform2, glm.vec3(UIHandler.game_window_size[0] / 2000, window_ratio * UIHandler.game_window_size[1] / 2000, 1.0))
+        transform2 = glm.scale(transform2, glm.vec3(window_ratio * UIHandler.game_window_size[0] / 2000, window_ratio ** 2 * UIHandler.game_window_size[1] / 2000, 1.0))
         # transform2 = glm.rotate(transform2, 0.2, glm.vec3(0.0, 0.0, 1.0))
 
         glUniformMatrix4fv(transform_loc, 1, GL_FALSE, glm.value_ptr(transform2))
@@ -182,7 +193,11 @@ def main():
         glUniform2f(window_size_loc, UIHandler.window_size[0], UIHandler.window_size[1])
         glUniform2f(game_window_size_loc, UIHandler.game_window_size[0], UIHandler.game_window_size[1])
         glUniform1f(padding_loc, UIHandler.padding)
+        glUniform1f(bar_padding_loc, UIHandler.bar_padding)
+        glUniform1f(bar_width_loc, UIHandler.bar_width)
         glUniform1f(element_window_width_loc, UIHandler.element_window_width)
+        glUniform4f(current_category_loc, UIHandler.current_category[0], UIHandler.current_category[1], UIHandler.current_category[2], UIHandler.current_category[3])
+        glUniform1f(element_list_height_loc, UIHandler.element_list_height)
 
         glBindVertexArray(square_VAO)
         glDrawArrays(GL_TRIANGLES, 0, 6)
