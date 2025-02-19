@@ -26,7 +26,7 @@ class UIHandler:
     element_window_width_min = 200
     element_window_width_max = 400
 
-    element_list_height = 2000
+    elements_list_height = 2000
 
     padding = 15
 
@@ -36,7 +36,15 @@ class UIHandler:
     mouse_at = ""
     fix_mouse_at = False
 
-    current_category = [0.496, 0.351, 1.0, 1.0]
+    category_color = {
+        "movimento": [0.496, 0.351, 1.0, 1.0],
+        "controle": [0.921, 0.356, 0.337, 1.0],
+        "sensacao": [1.0, 0.69, 0.117, 1.0],
+        "booleanos": [0.556, 0.984, 0.235, 1.0],
+        "variaveis": [1.0, 0.352, 0.937, 1.0],
+    }
+
+    current_category = category_color["movimento"]
 
     def handle():
         global mouse_x
@@ -125,6 +133,7 @@ def mouse_box(x1, y1, x2, y2):
 def main():
     pg.init()
     pg.display.set_mode(UIHandler.window_size, pg.OPENGL | pg.DOUBLEBUF)
+    pg.display.set_caption("Lino")
 
     shader_program = create_shader_program(VERTEX_SHADER, FRAGMENT_SHADER)
     square_VAO = create_square()
@@ -144,7 +153,7 @@ def main():
     bar_padding_loc = glGetUniformLocation(shader_program, "barPadding")
     element_window_width_loc = glGetUniformLocation(shader_program, "elementWindowWidth")
     current_category_loc = glGetUniformLocation(shader_program, "currentCategory")
-    element_list_height_loc = glGetUniformLocation(shader_program, "elementListHeight")
+    elements_list_height_loc = glGetUniformLocation(shader_program, "elementsListHeight")
 
     running = True
     start_time = time.time()
@@ -197,7 +206,7 @@ def main():
         glUniform1f(bar_width_loc, UIHandler.bar_width)
         glUniform1f(element_window_width_loc, UIHandler.element_window_width)
         glUniform4f(current_category_loc, UIHandler.current_category[0], UIHandler.current_category[1], UIHandler.current_category[2], UIHandler.current_category[3])
-        glUniform1f(element_list_height_loc, UIHandler.element_list_height)
+        glUniform1f(elements_list_height_loc, UIHandler.elements_list_height)
 
         glBindVertexArray(square_VAO)
         glDrawArrays(GL_TRIANGLES, 0, 6)

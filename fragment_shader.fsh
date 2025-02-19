@@ -30,6 +30,8 @@ float categoryHeight = 50.0;
 
 vec4 tempGrass = vec4(0.263, 0.631, 0.345, 1.0);
 
+float barRadius = (barWidth - barPadding * 2.0) / 2.0;
+
 int inRoundBox(vec2 topLeft, vec2 bottomRight, float radius) {
     if(gl_FragCoord.x > topLeft.x && gl_FragCoord.x < bottomRight.x && gl_FragCoord.y > topLeft.y && gl_FragCoord.y < bottomRight.y) {
         if (distance(vec2(topLeft.x + radius, topLeft.y + radius), gl_FragCoord.xy) > radius && gl_FragCoord.x < topLeft.x + radius && gl_FragCoord.y < topLeft.y + radius) {
@@ -77,6 +79,17 @@ int inElement(vec2 topLeft, vec2 size, vec4 color, float borderWidth, int type) 
     return inside;
 }
 
+void drawBar(vec2 topLeft, float height, float viewSpam, float totalSpam) {
+    if (inRoundBox(topLeft, vec2(topLeft.x + barWidth - barPadding * 2.0, topLeft.y + height), barRadius) == 1) {
+        FragColor = foreGround;
+        float holdHeight = viewSpam / totalSpam * height;
+        float verticalHoldPos = 100.0;
+        if (inRoundBox(vec2(topLeft.x, topLeft.y + verticalHoldPos), vec2(topLeft.x + barWidth - barPadding * 2.0, topLeft.y + holdHeight + verticalHoldPos), barRadius) == 1) {
+            FragColor = moveCategory;
+        }
+    }
+}
+
 void main() {
     vec4 gradientBackGround = interpolate(darkBackGround, brightBackGround, gl_FragCoord.y / windowSize.y);
 
@@ -86,7 +99,7 @@ void main() {
         FragColor = vec4(0.125, 0.117, 0.1875, 1.0);
         //game
     }
-    if(inRoundBox(vec2(padding, padding), vec2(padding + elementWindowWidth, windowSize.y - padding), borderRadius) == 1) {
+    if (inRoundBox(vec2(padding, padding), vec2(padding + elementWindowWidth, windowSize.y - padding), borderRadius) == 1) {
         FragColor = gradientBackGround;
         if (gl_FragCoord.y < padding + categoryHeight) {
             FragColor = moveCategory;
@@ -95,14 +108,17 @@ void main() {
         if (inElement(vec2(padding * 2.0, windowSize.y - padding * 2.0 - 40.0), vec2(150.0, 40.0), moveCategory, borderWidth, 0) == 1) {
             
         }
+    
+        drawBar(vec2(elementWindowWidth + padding - barWidth + barPadding, categoryHeight + padding + barPadding), windowSize.y - padding * 2.0 - categoryHeight - barPadding * 2.0, 200.0, 1000.0);
 
-        if (inRoundBox(vec2(elementWindowWidth + padding - barWidth + barPadding, categoryHeight + padding + barPadding), vec2(elementWindowWidth + padding - barPadding, windowSize.y - padding - barPadding), (barWidth - barPadding * 2.0) / 2.0) == 1) {
+        /*if (inRoundBox(vec2(elementWindowWidth + padding - barWidth + barPadding, categoryHeight + padding + barPadding), vec2(elementWindowWidth + padding - barPadding, windowSize.y - padding - barPadding), (barWidth - barPadding * 2.0) / 2.0) == 1) {
             FragColor = foreGround;
-            float barHeight = (windowSize.y - padding * 2.0 - categoryHeight) / (2000.0);
-            if (inRoundBox(vec2(elementWindowWidth + padding - barWidth + barPadding, categoryHeight + padding + barPadding), vec2(elementWindowWidth + padding - barPadding, categoryHeight + padding + barPadding + barHeight * windowSize.y - padding * 2.0 - categoryHeight - barPadding * 2.0), (barWidth - barPadding * 2.0) / 2.0) == 1) {
+            float barHeight = (windowSize.y - padding * 2.0 - categoryHeight) / elementsListHeight;
+            float verticalBarPos = 100.0;
+            if (inRoundBox(vec2(elementWindowWidth + padding - barWidth + barPadding, categoryHeight + padding + barPadding + verticalBarPos), vec2(elementWindowWidth + padding - barPadding, categoryHeight + padding + barPadding + barHeight * windowSize.y - padding * 2.0 - categoryHeight - barPadding * 2.0 + verticalBarPos), (barWidth - barPadding * 2.0) / 2.0) == 1) {
                 FragColor = currentCategory;
             }
-        }
+        }*/
 
     }
     if (inRoundBox(vec2(2.0 * padding + elementWindowWidth, padding), vec2(windowSize.x - 2.0 * padding - gameWindowSize.x, windowSize.y - padding), borderRadius) == 1) {
