@@ -2,6 +2,12 @@ from OpenGL.GL import *
 import pygame as pg
 import numpy as np
 
+class Texture():
+    def __init__(self, texture, width, height):
+        self.texture = texture
+        self.width = width
+        self.height = height
+
 def load_shader(path):
     with open(path, "r") as file:
         return file.read()
@@ -74,12 +80,11 @@ def load_texture(path):
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
 
     image = pg.image.load(path)
-    # image = pg.transform.scale(image, (1, 1))
     img_data = pg.image.tostring(image, "RGBA", True)
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.get_width(), image.get_height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, img_data)
     glGenerateMipmap(GL_TEXTURE_2D)
 
-    return [texture, (image.get_width(), image.get_height())]
+    return Texture(texture, image.get_width(), image.get_height())
 
 def load_text(text, font, color):
     texture = glGenTextures(1)
@@ -98,4 +103,4 @@ def load_text(text, font, color):
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.get_width(), image.get_height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, img_data)
     glGenerateMipmap(GL_TEXTURE_2D)
 
-    return [texture, (image.get_width(), image.get_height())]
+    return Texture(texture, image.get_width(), image.get_height())

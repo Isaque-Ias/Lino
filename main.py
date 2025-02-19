@@ -3,6 +3,13 @@ from OpenGL.GL import *
 import glm
 from shader import *
 
+#add other bar
+#fix bar hitbox move
+#add visualizer for blocks
+#make the block act algorithm
+#make better areas structure
+#build 2d world at least
+
 pg.init()
 
 VERTEX_SHADER = load_shader("vertex_shader.vsh")
@@ -54,8 +61,6 @@ class UIHandler:
     elements_bar_height = window_size[1] - padding * 2 - bar_padding * 2 - category_height
     elements_view_spam = window_size[1] - padding * 2 - category_height
     elements_bar_hold_height = elements_bar_height * elements_view_spam / elements_list_height
-
-    roboto_72 = pg.font.Font("Roboto.ttf", 72)
 
     def handle():
         global mouse_x
@@ -150,6 +155,48 @@ class UIHandler:
             if not UIHandler.fix_mouse_at:
                 UIHandler.mouse_at = "element_bar"
 
+class Area:
+    def __init__(self, area_type, information):
+        if area_type == "text":
+            self.text = information["text"]
+            self.font = information["font"]
+            self.color = information["color"]
+            self.pos = information["pos"]
+            self.scale = information["scale"]
+
+class Block:
+    def __init__(self, block_type, content=False):
+        if block_type == "move_forward":
+            self.color = UIHandler.category_color["movimento"]
+            self.width = 200
+            self.height = 50
+            if content:
+                self.sequence = content
+            else:
+                self.sequence = [
+                    Area("text", {
+                        "text": "oi"
+                        })
+                ]
+
+class Element:
+    roboto_72 = pg.font.Font("Roboto.ttf", 72)
+
+    #only for selection
+    blocks = [
+        Block("move_forward"),
+    ]
+
+class Workspace:
+    roboto_72 = pg.font.Font("Roboto.ttf", 72)
+
+    #only for selection
+    blocks = [
+        Block("move_forward"),
+    ]
+
+
+
 class Text:
     def __init__(self, text, font, color, pos, scale, proportions = (0.5, 0.5)):
         text_texture = load_text(text, font, color)
@@ -172,13 +219,11 @@ def main():
     shader_program = create_shader_program(VERTEX_SHADER, FRAGMENT_SHADER)
     square_VAO = create_square()
     
-    texture1 = load_texture("pixel.png")
-    texture2 = load_texture("car.png")
-    texture3 = load_texture("car.jpg")
+    background_texture = load_texture("pixel.png")
 
-    UIHandler.texts = [
-        Text("208", UIHandler.roboto_72, (255, 255, 255), [0, 0], [0.25, 0.25]),
-    ]
+    # Elements.texts = [
+    #     Text("208", Elements.roboto_72, (255, 255, 255), [0, 0], [0.25, 0.25]),
+    # ]
 
     glUseProgram(shader_program)
 
@@ -194,6 +239,7 @@ def main():
     elements_list_height_loc = glGetUniformLocation(shader_program, "elementsListHeight")
     elements_bar_percent_loc = glGetUniformLocation(shader_program, "elementsBarPercent")
     category_height_loc = glGetUniformLocation(shader_program, "categoryHeight")
+    
     is_text_loc = glGetUniformLocation(shader_program, "isText")
 
     running = True
@@ -229,27 +275,42 @@ def main():
         glUniform1i(texture_loc, 0)
 
         glActiveTexture(GL_TEXTURE0)
-        glBindTexture(GL_TEXTURE_2D, texture1[0])
+        glBindTexture(GL_TEXTURE_2D, background_texture.texture)
 
         glBindVertexArray(square_VAO)
         glDrawArrays(GL_TRIANGLES, 0, 6)
 
         #ui text
-        for text in UIHandler.texts:
-            glUniform1i(is_text_loc, 1)
+        for element in Element.blocks:
+            
+            glUniform1i(is_text_loc, 2)
 
             text_transform = glm.mat4(1.0)
-            text_transform = glm.translate(text_transform, glm.vec3(text.pos[0], text.pos[1], 0.0))
-            text_transform = glm.scale(text_transform, glm.vec3(text.scale[0], text.scale[1], 1.0))
+            text_transform = glm.translate(text_transform, glm.vec3(part.pos[0], part.pos[1], 0.0))
+            text_transform = glm.scale(text_transform, glm.vec3(part.scale[0], part.scale[1], 1.0))
             glUniformMatrix4fv(transform_loc, 1, GL_FALSE, glm.value_ptr(text_transform))
             glUniform1i(texture_loc, 0)
 
             glActiveTexture(GL_TEXTURE0)
-            glBindTexture(GL_TEXTURE_2D, text.text)
+            glBindTexture(GL_TEXTURE_2D, part.text)
 
             glBindVertexArray(square_VAO)
             glDrawArrays(GL_TRIANGLES, 0, 6)
+            
+            # for part in element:
+            #     glUniform1i(is_text_loc, 1)
 
+            #     text_transform = glm.mat4(1.0)
+            #     text_transform = glm.translate(text_transform, glm.vec3(part.pos[0], part.pos[1], 0.0))
+            #     text_transform = glm.scale(text_transform, glm.vec3(part.scale[0], part.scale[1], 1.0))
+            #     glUniformMatrix4fv(transform_loc, 1, GL_FALSE, glm.value_ptr(text_transform))
+            #     glUniform1i(texture_loc, 0)
+
+            #     glActiveTexture(GL_TEXTURE0)
+            #     glBindTexture(GL_TEXTURE_2D, part.text)
+
+            #     glBindVertexArray(square_VAO)
+            #     glDrawArrays(GL_TRIANGLES, 0, 6)
 
         pg.display.flip()
         pg.time.wait(10)

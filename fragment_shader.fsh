@@ -29,7 +29,6 @@ float triangleHeight = 20.0;
 
 float threeHalfs = 1.5;
 
-
 vec4 tempGrass = vec4(0.263, 0.631, 0.345, 1.0);
 
 float barRadius = (barWidth - barPadding * 2.0) / 2.0;
@@ -118,6 +117,9 @@ void main() {
         //elements
         float blockHeight = 50.0;
         if (inElement(vec2(padding + barPadding, windowSize.y - padding - barPadding - blockHeight), vec2(200.0, blockHeight), moveCategory, borderWidth, 0) == 1) {
+            
+        }
+        if (inElement(vec2(padding + barPadding, windowSize.y - padding - barPadding - blockHeight*2.0), vec2(200.0, blockHeight), moveCategory, borderWidth, 0) == 1) {
             
         }
 
