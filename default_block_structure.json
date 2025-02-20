@@ -1,0 +1,170 @@
+{
+    "move_forwards": {
+        "color": "movimento",
+        "width": 200,
+        "height": 50,
+        "block_format": 0,
+        "sequence": [
+            {
+                "type": "text",
+                "information": {
+                    "text": "mover",
+                    "font": "roboto_72",
+                    "color": [255, 255, 255],
+                    "pos": [20, 20],
+                    "scale": [0.25, 0.25],
+                    "position_offset": [0.5, 0]
+                }
+            },
+            {
+                "type": "sensing",
+                "information": {
+                    "space": "number",
+                    "text": "1",
+                    "font": "roboto_72",
+                    "color": [0, 0, 0],
+                    "pos": [20, 20],
+                    "scale": [0.25, 0.25],
+                    "position_offset": [0.5, 0]
+                }
+            },
+            {
+                "type": "text",
+                "information": {
+                    "text": "blocos para frente",
+                    "font": "roboto_72",
+                    "color": [255, 255, 255],
+                    "pos": [20, 20],
+                    "scale": [0.25, 0.25],
+                    "position_offset": [0.5, 0]
+                }
+            }
+        ]
+    },
+    "move_leftwards": {
+        "color": "movimento",
+        "width": 200,
+        "height": 50,
+        "block_format": 0,
+        "sequence": [
+            {
+                "type": "text",
+                "information": {
+                    "text": "mover",
+                    "font": "roboto_72",
+                    "color": [255, 255, 255],
+                    "pos": [20, 20],
+                    "scale": [0.25, 0.25],
+                    "position_offset": [0.5, 0]
+                }
+            },
+            {
+                "type": "sensing",
+                "information": {
+                    "space": "number",
+                    "text": "1",
+                    "font": "roboto_72",
+                    "color": [0, 0, 0],
+                    "pos": [20, 20],
+                    "scale": [0.25, 0.25],
+                    "position_offset": [0.5, 0]
+                }
+            },
+            {
+                "type": "text",
+                "information": {
+                    "text": "blocos para a esquerda",
+                    "font": "roboto_72",
+                    "color": [255, 255, 255],
+                    "pos": [20, 20],
+                    "scale": [0.25, 0.25],
+                    "position_offset": [0.5, 0]
+                }
+            }
+        ]
+    },
+    "move_rightwards": {
+        "color": "movimento",
+        "width": 200,
+        "height": 50,
+        "block_format": 0,
+        "sequence": [
+            {
+                "type": "text",
+                "information": {
+                    "text": "mover",
+                    "font": "roboto_72",
+                    "color": [255, 255, 255],
+                    "pos": [20, 20],
+                    "scale": [0.25, 0.25],
+                    "position_offset": [0.5, 0]
+                }
+            },
+            {
+                "type": "sensing",
+                "information": {
+                    "space": "number",
+                    "text": "1",
+                    "font": "roboto_72",
+                    "color": [0, 0, 0],
+                    "pos": [20, 20],
+                    "scale": [0.25, 0.25],
+                    "position_offset": [0.5, 0]
+                }
+            },
+            {
+                "type": "text",
+                "information": {
+                    "text": "blocos para a direita",
+                    "font": "roboto_72",
+                    "color": [255, 255, 255],
+                    "pos": [20, 20],
+                    "scale": [0.25, 0.25],
+                    "position_offset": [0.5, 0]
+                }
+            }
+        ]
+    },
+    "move_backwards": {
+        "color": "movimento",
+        "width": 200,
+        "height": 50,
+        "block_format": 0,
+        "sequence": [
+            {
+                "type": "text",
+                "information": {
+                    "text": "mover",
+                    "font": "roboto_72",
+                    "color": [255, 255, 255],
+                    "pos": [20, 20],
+                    "scale": [0.25, 0.25],
+                    "position_offset": [0.5, 0]
+                }
+            },
+            {
+                "type": "sensing",
+                "information": {
+                    "space": "number",
+                    "text": "1",
+                    "font": "roboto_72",
+                    "color": [0, 0, 0],
+                    "pos": [20, 20],
+                    "scale": [0.25, 0.25],
+                    "position_offset": [0.5, 0]
+                }
+            },
+            {
+                "type": "text",
+                "information": {
+                    "text": "blocos para tras",
+                    "font": "roboto_72",
+                    "color": [255, 255, 255],
+                    "pos": [20, 20],
+                    "scale": [0.25, 0.25],
+                    "position_offset": [0.5, 0]
+                }
+            }
+        ]
+    }
+}

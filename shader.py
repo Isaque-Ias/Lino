@@ -3,10 +3,12 @@ import pygame as pg
 import numpy as np
 
 class Texture():
-    def __init__(self, texture, width, height):
+    def __init__(self, texture, width, height, bound_width=False, bound_height=False):
         self.texture = texture
         self.width = width
         self.height = height
+        self.bound_width = bound_width
+        self.bound_height = bound_height
 
 def load_shader(path):
     with open(path, "r") as file:
@@ -97,10 +99,31 @@ def load_text(text, font, color):
 
     text = font.render(text, False, color)
     image = pg.surface.Surface((text.get_width(), text.get_height()))
-    image.fill((0, 0, 0))
+    image.fill((0, 0, 0) if sum(color) / 3 > 127 else (255, 255, 255))
     image.blit(text, (0, 0))
     img_data = pg.image.tostring(image, "RGBA", True)
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.get_width(), image.get_height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, img_data)
     glGenerateMipmap(GL_TEXTURE_2D)
 
     return Texture(texture, image.get_width(), image.get_height())
+
+def load_sensing(text, font, color, bound=False):
+    texture = glGenTextures(1)
+    glBindTexture(GL_TEXTURE_2D, texture)
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+
+    text = font.render(text, False, color)
+    if not bound:
+        bound = (text.get_width(), text.get_height())
+    image = pg.surface.Surface(bound)
+    image.fill((0, 0, 0) if sum(color) / 3 > 127 else (255, 255, 255))
+    image.blit(text, ((bound[0] - text.get_width()) / 2, (bound[1] - text.get_height()) / 2))
+    img_data = pg.image.tostring(image, "RGBA", True)
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, bound[0], bound[1], 0, GL_RGBA, GL_UNSIGNED_BYTE, img_data)
+    glGenerateMipmap(GL_TEXTURE_2D)
+
+    return Texture(texture, bound[0], bound[1], text.get_width(), text.get_height())
