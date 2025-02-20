@@ -13,7 +13,13 @@ uniform vec4 currentCategory;
 uniform float elementsListHeight;
 uniform float elementsBarPercent;
 uniform float categoryHeight;
+uniform int displayArea;
 uniform int isText;
+
+uniform vec2 blockPos;
+uniform vec2 blockSize;
+uniform vec4 blockColor;
+uniform int blockFormat;
 
 float borderRadius = 10.0;
 
@@ -107,7 +113,7 @@ vec4 blendPixels(vec4 pixel1, vec4 pixel2) {
 
 void main() {
     vec4 gradientBackGround = interpolate(darkBackGround, brightBackGround, gl_FragCoord.y / windowSize.y);
-    FragColor = interpolate(vec4(0.161, 0.831, 1.0, 1.0), vec4(0.718, 0.941, 1.0, 1.0), (windowSize.y - gl_FragCoord.y + padding) / gameWindowSize.y);
+    FragColor = texture(ourTexture, TexCoord);//interpolate(vec4(0.161, 0.831, 1.0, 1.0), vec4(0.718, 0.941, 1.0, 1.0), (windowSize.y - gl_FragCoord.y + padding) / gameWindowSize.y);
     if (inRoundBox(vec2(windowSize.x - padding - gameWindowSize.x, windowSize.y - padding - gameWindowSize.y), vec2(windowSize.x - padding, windowSize.y - padding), borderRadius) == 0) {
         FragColor = foreGround;
         //game
@@ -115,12 +121,23 @@ void main() {
     if (inRoundBox(vec2(padding, padding), vec2(padding + elementWindowWidth, windowSize.y - padding), borderRadius) == 1) {
         FragColor = gradientBackGround;
         //elements
-        float blockHeight = 50.0;
-        if (inElement(vec2(padding + barPadding, windowSize.y - padding - barPadding - blockHeight), vec2(200.0, blockHeight), moveCategory, borderWidth, 0) == 1) {
-            
-        }
-        if (inElement(vec2(padding + barPadding, windowSize.y - padding - barPadding - blockHeight*2.0), vec2(200.0, blockHeight), moveCategory, borderWidth, 0) == 1) {
-            
+
+        if (displayArea == 3) {
+            if (isText == 1) {
+                float alpha = texture(ourTexture, TexCoord).r;
+                if (alpha == 0.0) {
+                    discard;
+                } else {
+                    FragColor = blendPixels(vec4(1.0, 1.0, 1.0, alpha), FragColor);
+                }
+                
+            } else {
+                if (inElement(blockPos, blockSize, blockColor, borderWidth, 0) == 1) {
+                    
+                } else {
+                    discard;
+                }
+            }
         }
 
         //bar
@@ -154,7 +171,7 @@ void main() {
         //scenario
 
     }
-    if (isText == 1) {
+    if (displayArea == 1) {
         FragColor = blendPixels(vec4(1.0, 1.0, 1.0, texture(ourTexture, TexCoord).r), FragColor);
     }
 

@@ -95,7 +95,7 @@ def load_text(text, font, color):
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
 
-    text = font.render(text, True, color)
+    text = font.render(text, False, color)
     image = pg.surface.Surface((text.get_width(), text.get_height()))
     image.fill((0, 0, 0))
     image.blit(text, (0, 0))
