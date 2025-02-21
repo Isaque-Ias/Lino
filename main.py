@@ -1,4 +1,5 @@
 import pygame as pg
+from pygame.locals import K_RETURN
 from OpenGL.GL import *
 import glm
 from shader import *
@@ -26,6 +27,8 @@ with open("default_block_structure.json", "r") as file:
 with open("menu_interface.json", "r") as file:
     MENU_INTERFACE = json.load(file)
 
+scene = "menu"
+
 class UIHandler:
     fonts = {
         "roboto_72": pg.font.Font("Roboto.ttf", 72)
@@ -49,7 +52,7 @@ class UIHandler:
     element_window_width_max = 400
 
     elements_list_height = 2000
-    elements_bar_percent = 0.9
+    elements_bar_percent = 0.1
     elements_bar_percent_click = 0
 
     menu_outer_offset = 10
@@ -77,7 +80,11 @@ class UIHandler:
 
     elements_bar_height = window_size[1] - padding * 2 - bar_padding * 2 - category_height
     elements_view_spam = window_size[1] - padding * 2 - category_height
+
     elements_bar_hold_height = elements_bar_height * elements_view_spam / elements_list_height
+
+    def recalc_hold_height():
+        UIHandler.elements_bar_hold_height = UIHandler.elements_bar_height * UIHandler.elements_view_spam / UIHandler.elements_list_height
 
     def handle():
         global mouse_x
@@ -172,46 +179,11 @@ class UIHandler:
             if not UIHandler.fix_mouse_at:
                 UIHandler.mouse_at = "element_bar"
 
-class Button:
-    def __init__(self, button_type, extra=False):
-        self.button_type = button_type
-        self.x = extra["pos"][0]
-        self.y = extra["pos"][1]
-        self.width = extra["scale"][0]
-        self.height = extra["scale"][1]
-
-        if button_type == "goto":
-            self.text = extra["text"]
-            self.goto = extra["goto"]
-            self.active = extra["active"] if extra.get("active") else True
-
-            self.font = UIHandler.fonts[extra["font"]]
-            self.color = extra["color"]
-            self.raw_pos = extra["pos"]
-            self.raw_scale = extra["scale"]
-
-            self.texture = load_text(self.text, self.font, self.color)
-
-            self.scale = [self.raw_scale[0] * self.texture.width / UIHandler.window_size[0], self.raw_scale[1] * self.texture.height / UIHandler.window_size[1]]
-            
-            self.scale = [self.raw_scale[0] * self.texture.width / UIHandler.window_size[0], self.raw_scale[1] * self.texture.height / UIHandler.window_size[1]]
-
-            self.position_offset = extra["position_offset"] if extra.get("position_offset") else (0, 0)
-            
-            self.size = [self.texture.width, self.texture.height]
-
-            screen_pos = [self.raw_pos[0] + extra["scale"][0] / 2 + self.size[0] * self.position_offset[0], (UIHandler.window_size[1]) - self.raw_pos[1] + extra["scale"][1] / 2 + self.size[1] * self.position_offset[1]]
-            self.pos = [map(0, UIHandler.window_size[0], -1, 1, screen_pos[0]), map(UIHandler.window_size[1], 0, -1, 1, screen_pos[1])]
-
 class Menu:
     menu_outer_offset = 10
     menu_outer_width = 5
     menu_outer_radius = 50
     menu_background_alpha = 1
-
-    current_interface = "opening"
-
-    interface = {}
 
     def handle():
         Menu.menu_background_alpha = max(0, Menu.menu_background_alpha - 0.01)
@@ -366,11 +338,15 @@ def game(square, uniforms, textures):
             draw(square, uniforms, textures, part.texture.texture, texture_transform)
 
 def menu(square, uniforms, textures):
+    global scene
+    if pg.key.get_pressed()[K_RETURN]:
+        scene = "game"
+
     glUniform1f(uniforms["menu_outer_offset_loc"], Menu.menu_outer_offset)
     glUniform1f(uniforms["menu_outer_width_loc"], Menu.menu_outer_width)
     glUniform1f(uniforms["menu_outer_radius_loc"], Menu.menu_outer_radius)
     glUniform1f(uniforms["menu_background_alpha_loc"], Menu.menu_background_alpha)
-    glUniform1i(uniforms["drawing_button_loc"], 0)
+    glUniform1i(uniforms["is_text_loc"], 0)
     
     Menu.handle()
 
@@ -378,16 +354,13 @@ def menu(square, uniforms, textures):
 
     draw(square, uniforms, textures, "menu_background")
 
-    for button in Menu.interface[Menu.current_interface]:
-        glUniform1i(uniforms["drawing_button_loc"], 1)
-        glUniform2f(uniforms["button_pos_loc"], button.x, button.y)
-        glUniform2f(uniforms["button_size_loc"], button.width, button.height)
+    glUniform1i(uniforms["is_text_loc"], 1)
 
-        texture_transform = glm.mat4(1.0)
-        texture_transform = glm.translate(texture_transform, glm.vec3(button.pos[0], button.pos[1], 0.0))
-        texture_transform = glm.scale(texture_transform, glm.vec3(button.scale[0], button.scale[1], 1.0))
+    texture_transform = glm.mat4(1.0)
+    texture_transform = glm.translate(texture_transform, glm.vec3(0.0, 0.0, 0.0))
+    texture_transform = glm.scale(texture_transform, glm.vec3(textures["enter"].width / UIHandler.window_size[0], textures["enter"].height / UIHandler.window_size[1], 1.0))
 
-        draw(square, uniforms, textures, button.texture.texture, texture_transform)
+    draw(square, uniforms, textures, "enter", texture_transform)
 
 
 def mouse_box(x1, y1, x2, y2):
@@ -400,13 +373,12 @@ def map(x, y, z, w, t):
 
 
 def main():
+    global scene
     pg.display.set_mode(UIHandler.window_size, pg.OPENGL | pg.DOUBLEBUF)
     pg.display.set_caption("Lino")
 
     clock = pg.time.Clock()
     FPS = 60
-
-    scene = "menu"
 
     shader_program = create_shader_program(VERTEX_SHADER, FRAGMENT_SHADER)
     square_VAO = create_square()
@@ -414,6 +386,7 @@ def main():
     textures = {}
     textures["background_texture"] = load_texture("pixel.png")
     textures["menu_background"] = load_texture("menu_background.png")
+    textures["enter"] = load_text("Pressione Enter para jogar...", UIHandler.fonts["roboto_72"], (255, 255, 255))
 
     glUseProgram(shader_program)
 
@@ -438,10 +411,6 @@ def main():
     uniforms["menu_outer_radius_loc"] = glGetUniformLocation(shader_program, "menuOuterRadius")
     uniforms["menu_background_alpha_loc"] = glGetUniformLocation(shader_program, "menuBackgroundAlpha")
 
-    uniforms["button_pos_loc"] = glGetUniformLocation(shader_program, "buttonPos")
-    uniforms["button_size_loc"] = glGetUniformLocation(shader_program, "buttonSize")
-    uniforms["drawing_button_loc"] = glGetUniformLocation(shader_program, "drawingButton")
-
     uniforms["block_pos_loc"] = glGetUniformLocation(shader_program, "blockPos")
     uniforms["block_size_loc"] = glGetUniformLocation(shader_program, "blockSize")
     uniforms["block_color_loc"] = glGetUniformLocation(shader_program, "blockColor")
@@ -460,22 +429,8 @@ def main():
         )
         carry_over += Element.blocks[i].height + UIHandler.padding
 
-
-    for interface_key in list(MENU_INTERFACE.keys()):
-        interface_list = []
-
-        carry_over = 0
-        for interface_element in enumerate(MENU_INTERFACE[interface_key]):
-
-            pass_extra = copy.deepcopy(interface_element[1]["extra"])
-            pass_extra["pos"] = [pass_extra["pos"][0], pass_extra["pos"][1] + carry_over]
-            
-            interface_list.append(
-                Button(interface_element[1]["button_type"], pass_extra)
-                )
-            carry_over += interface_list[interface_element[0]].height
-
-        Menu.interface[interface_key] = interface_list
+    UIHandler.elements_list_height = carry_over
+    UIHandler.recalc_hold_height()
 
     running = True
 

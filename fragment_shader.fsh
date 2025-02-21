@@ -139,18 +139,17 @@ void main() {
     FragColor = texture(ourTexture, TexCoord);
 
     if (scene == 0) {
-        FragColor = interpolate(texture(ourTexture, TexCoord), foreGround, 0.3);
-        if (inRoundOutline(vec2(menuOuterOffset, menuOuterOffset), vec2(windowSize.x - menuOuterOffset, windowSize.y - menuOuterOffset), menuOuterRadius, menuOuterWidth) == 1) {
-            FragColor = brightBackGround;
-        }
-
-        if (drawingButton == 1) {
-            if (inRoundBox(buttonPos, vec2(buttonPos.x + buttonSize.x, buttonPos.y + buttonSize.y), 10.0) == 1) {
-                FragColor = brightBackGround;
-                FragColor = texture(ourTexture, TexCoord);
-            } else {
+        if (isText == 0) {
+            FragColor = interpolate(texture(ourTexture, TexCoord), foreGround, 0.3);
+        } else {
+            FragColor = texture(ourTexture, TexCoord);
+            if (texture(ourTexture, TexCoord).r + texture(ourTexture, TexCoord).g + texture(ourTexture, TexCoord).b == 0.0) {
                 discard;
             }
+        }
+
+        if (inRoundOutline(vec2(menuOuterOffset, menuOuterOffset), vec2(windowSize.x - menuOuterOffset, windowSize.y - menuOuterOffset), menuOuterRadius, menuOuterWidth) == 1) {
+            FragColor = brightBackGround;
         }
 
         FragColor = interpolate(FragColor, vec4(0.0, 0.0, 0.0, 0.0), menuBackgroundAlpha);
