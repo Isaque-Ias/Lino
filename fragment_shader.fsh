@@ -27,6 +27,10 @@ uniform int blockFormat;
 uniform float menuOuterOffset;
 uniform float menuOuterWidth;
 uniform float menuOuterRadius;
+uniform float menuBackgroundAlpha;
+uniform vec2 buttonPos;
+uniform vec2 buttonSize;
+uniform int drawingButton;
 
 float borderRadius = 10.0;
 
@@ -61,6 +65,17 @@ int inRoundBox(vec2 topLeft, vec2 bottomRight, float radius) {
             return 0;
         }
         return 1;
+    }
+    return 0;
+}
+
+int inRoundOutline(vec2 topLeft, vec2 bottomRight, float radius, float borderWidth) {
+    if (inRoundBox(topLeft, bottomRight, radius) == 1) {
+        if (inRoundBox(vec2(topLeft.x + borderWidth, topLeft.y + borderWidth), vec2(bottomRight.x - borderWidth, bottomRight.y - borderWidth), radius - borderWidth) == 1) {
+            return 0;
+        } else {
+            return 1;
+        }
     }
     return 0;
 }
@@ -120,14 +135,25 @@ vec4 blendPixels(vec4 pixel1, vec4 pixel2) {
 
 void main() {
     vec4 gradientBackGround = interpolate(darkBackGround, brightBackGround, gl_FragCoord.y / windowSize.y);
-    FragColor = interpolate(texture(ourTexture, TexCoord), foreGround, 0.5);
+    
+    FragColor = texture(ourTexture, TexCoord);
+
     if (scene == 0) {
-        if (inRoundBox(vec2(menuOuterOffset, menuOuterOffset), vec2(windowSize.x - menuOuterOffset, windowSize.y - menuOuterOffset), menuOuterRadius) == 1) {
+        FragColor = interpolate(texture(ourTexture, TexCoord), foreGround, 0.3);
+        if (inRoundOutline(vec2(menuOuterOffset, menuOuterOffset), vec2(windowSize.x - menuOuterOffset, windowSize.y - menuOuterOffset), menuOuterRadius, menuOuterWidth) == 1) {
             FragColor = brightBackGround;
-            if (inRoundBox(vec2(menuOuterOffset + menuOuterWidth, menuOuterOffset + menuOuterWidth), vec2(windowSize.x - menuOuterOffset - menuOuterWidth, windowSize.y - menuOuterOffset - menuOuterWidth), menuOuterRadius - menuOuterWidth) == 1) {
+        }
+
+        if (drawingButton == 1) {
+            if (inRoundBox(buttonPos, vec2(buttonPos.x + buttonSize.x, buttonPos.y + buttonSize.y), 10.0) == 1) {
+                FragColor = brightBackGround;
                 FragColor = texture(ourTexture, TexCoord);
+            } else {
+                discard;
             }
         }
+
+        FragColor = interpolate(FragColor, vec4(0.0, 0.0, 0.0, 0.0), menuBackgroundAlpha);
     } else if (scene == 1) {
         if (inRoundBox(vec2(windowSize.x - padding - gameWindowSize.x, windowSize.y - padding - gameWindowSize.y), vec2(windowSize.x - padding, windowSize.y - padding), borderRadius) == 0) {
             FragColor = foreGround;

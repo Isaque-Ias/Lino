@@ -19,11 +19,12 @@ pg.init()
 
 VERTEX_SHADER = load_shader("vertex_shader.vsh")
 FRAGMENT_SHADER = load_shader("fragment_shader.fsh")
+
 with open("default_block_structure.json", "r") as file:
     DEFAULT_BLOCK_STRUCTURE = json.load(file)
 
-def map(x, y, z, w, t):
-    return (t - x) * (w - z) / (y - x) + z
+with open("menu_interface.json", "r") as file:
+    MENU_INTERFACE = json.load(file)
 
 class UIHandler:
     fonts = {
@@ -54,6 +55,7 @@ class UIHandler:
     menu_outer_offset = 10
     menu_outer_width = 10
     menu_outer_radius = 50
+    menu_background_alpha = 1
 
     padding = 15
 
@@ -170,13 +172,56 @@ class UIHandler:
             if not UIHandler.fix_mouse_at:
                 UIHandler.mouse_at = "element_bar"
 
+class Button:
+    def __init__(self, button_type, extra=False):
+        self.button_type = button_type
+        self.x = extra["pos"][0]
+        self.y = extra["pos"][1]
+        self.width = extra["scale"][0]
+        self.height = extra["scale"][1]
+
+        if button_type == "goto":
+            self.text = extra["text"]
+            self.goto = extra["goto"]
+            self.active = extra["active"] if extra.get("active") else True
+
+            self.font = UIHandler.fonts[extra["font"]]
+            self.color = extra["color"]
+            self.raw_pos = extra["pos"]
+            self.raw_scale = extra["scale"]
+
+            self.texture = load_text(self.text, self.font, self.color)
+
+            self.scale = [self.raw_scale[0] * self.texture.width / UIHandler.window_size[0], self.raw_scale[1] * self.texture.height / UIHandler.window_size[1]]
+            
+            self.scale = [self.raw_scale[0] * self.texture.width / UIHandler.window_size[0], self.raw_scale[1] * self.texture.height / UIHandler.window_size[1]]
+
+            self.position_offset = extra["position_offset"] if extra.get("position_offset") else (0, 0)
+            
+            self.size = [self.texture.width, self.texture.height]
+
+            screen_pos = [self.raw_pos[0] + extra["scale"][0] / 2 + self.size[0] * self.position_offset[0], (UIHandler.window_size[1]) - self.raw_pos[1] + extra["scale"][1] / 2 + self.size[1] * self.position_offset[1]]
+            self.pos = [map(0, UIHandler.window_size[0], -1, 1, screen_pos[0]), map(UIHandler.window_size[1], 0, -1, 1, screen_pos[1])]
+
+class Menu:
+    menu_outer_offset = 10
+    menu_outer_width = 5
+    menu_outer_radius = 50
+    menu_background_alpha = 1
+
+    current_interface = "opening"
+
+    interface = {}
+
+    def handle():
+        Menu.menu_background_alpha = max(0, Menu.menu_background_alpha - 0.01)
+
 class Area:
     def __init__(self, area_type, information):
         self.parent = information["parent"]
+        self.area_type = area_type
         
         if area_type == "text":
-            self.area_type = area_type
-
             self.text = information["text"]
             self.font = UIHandler.fonts[information["font"]]
             self.color = information["color"]
@@ -195,8 +240,6 @@ class Area:
             self.pos = [map(0, UIHandler.window_size[0], -1, 1, screen_pos[0]), map(UIHandler.window_size[1], 0, -1, 1, screen_pos[1])]
 
         elif area_type == "sensing":
-            self.area_type = area_type
-
             self.space = information["space"]
             self.bound_scale = information["bound_scale"] if not information.get("bound_scale") == None else False
 
@@ -323,21 +366,38 @@ def game(square, uniforms, textures):
             draw(square, uniforms, textures, part.texture.texture, texture_transform)
 
 def menu(square, uniforms, textures):
-
-    # glUniform1i(uniforms["display_area_loc"], 3)
-    # glUniform1i(uniforms["is_text_loc"], 0)
-
-    # glUniform2f(uniforms["block_pos_loc"], element.x, element.y)
-    # glUniform2f(uniforms["block_size_loc"], element.width, element.height)
-    # glUniform4f(uniforms["block_color_loc"], element.color[0], element.color[1], element.color[2], element.color[3])
-    # glUniform1i(uniforms["block_format_loc"], element.block_format)
+    glUniform1f(uniforms["menu_outer_offset_loc"], Menu.menu_outer_offset)
+    glUniform1f(uniforms["menu_outer_width_loc"], Menu.menu_outer_width)
+    glUniform1f(uniforms["menu_outer_radius_loc"], Menu.menu_outer_radius)
+    glUniform1f(uniforms["menu_background_alpha_loc"], Menu.menu_background_alpha)
+    glUniform1i(uniforms["drawing_button_loc"], 0)
     
+    Menu.handle()
+
+    glUniform1i(uniforms["scene_loc"], 0)
+
     draw(square, uniforms, textures, "menu_background")
+
+    for button in Menu.interface[Menu.current_interface]:
+        glUniform1i(uniforms["drawing_button_loc"], 1)
+        glUniform2f(uniforms["button_pos_loc"], button.x, button.y)
+        glUniform2f(uniforms["button_size_loc"], button.width, button.height)
+
+        texture_transform = glm.mat4(1.0)
+        texture_transform = glm.translate(texture_transform, glm.vec3(button.pos[0], button.pos[1], 0.0))
+        texture_transform = glm.scale(texture_transform, glm.vec3(button.scale[0], button.scale[1], 1.0))
+
+        draw(square, uniforms, textures, button.texture.texture, texture_transform)
+
 
 def mouse_box(x1, y1, x2, y2):
     if mouse_x >= x1 and mouse_x <= x2 and mouse_y >= y1 and mouse_y <= y2:
         return True
     return False
+
+def map(x, y, z, w, t):
+    return (t - x) * (w - z) / (y - x) + z
+
 
 def main():
     pg.display.set_mode(UIHandler.window_size, pg.OPENGL | pg.DOUBLEBUF)
@@ -376,7 +436,11 @@ def main():
     uniforms["menu_outer_offset_loc"] = glGetUniformLocation(shader_program, "menuOuterOffset")
     uniforms["menu_outer_width_loc"] = glGetUniformLocation(shader_program, "menuOuterWidth")
     uniforms["menu_outer_radius_loc"] = glGetUniformLocation(shader_program, "menuOuterRadius")
+    uniforms["menu_background_alpha_loc"] = glGetUniformLocation(shader_program, "menuBackgroundAlpha")
 
+    uniforms["button_pos_loc"] = glGetUniformLocation(shader_program, "buttonPos")
+    uniforms["button_size_loc"] = glGetUniformLocation(shader_program, "buttonSize")
+    uniforms["drawing_button_loc"] = glGetUniformLocation(shader_program, "drawingButton")
 
     uniforms["block_pos_loc"] = glGetUniformLocation(shader_program, "blockPos")
     uniforms["block_size_loc"] = glGetUniformLocation(shader_program, "blockSize")
@@ -389,15 +453,29 @@ def main():
     background_transform = glm.mat4(1.0)
     background_transform = glm.scale(background_transform, glm.vec3(1.0, 1.0, 1.0))
 
-    Element.blocks = [
-        Block("move_forwards", (20, UIHandler.window_size[1] - UIHandler.padding - UIHandler.bar_padding - 50)),
-        Block("move_leftwards", (20, UIHandler.window_size[1] - UIHandler.padding - UIHandler.bar_padding - 100)),
-        Block("move_rightwards", (20, UIHandler.window_size[1] - UIHandler.padding - UIHandler.bar_padding - 150)),
-        Block("move_backwards", (20, UIHandler.window_size[1] - UIHandler.padding - UIHandler.bar_padding - 200)),
-        # Block("move_forwards", (20, UIHandler.window_size[1] - UIHandler.padding - UIHandler.bar_padding - 250)),
-        # Block("move_forwards", (20, UIHandler.window_size[1] - UIHandler.padding - UIHandler.bar_padding - 300)),
-        # Block("move_forward", (20, UIHandler.window_size[1] - 300)),
-    ]
+    carry_over = 0
+    for i in range(10):
+        Element.blocks.append(
+            Block("move_forwards", (Menu.menu_outer_offset, UIHandler.window_size[1] - Menu.menu_outer_offset - 50 - carry_over))
+        )
+        carry_over += Element.blocks[i].height + UIHandler.padding
+
+
+    for interface_key in list(MENU_INTERFACE.keys()):
+        interface_list = []
+
+        carry_over = 0
+        for interface_element in enumerate(MENU_INTERFACE[interface_key]):
+
+            pass_extra = copy.deepcopy(interface_element[1]["extra"])
+            pass_extra["pos"] = [pass_extra["pos"][0], pass_extra["pos"][1] + carry_over]
+            
+            interface_list.append(
+                Button(interface_element[1]["button_type"], pass_extra)
+                )
+            carry_over += interface_list[interface_element[0]].height
+
+        Menu.interface[interface_key] = interface_list
 
     running = True
 
@@ -412,25 +490,7 @@ def main():
 
         #global uniforms
         glUniform2f(uniforms["window_size_loc"], UIHandler.window_size[0], UIHandler.window_size[1])
-        glUniform2f(uniforms["game_window_size_loc"], UIHandler.game_window_size[0], UIHandler.game_window_size[1])
-        glUniform1f(uniforms["padding_loc"], UIHandler.padding)
-        glUniform1f(uniforms["bar_padding_loc"], UIHandler.bar_padding)
-        glUniform1f(uniforms["bar_width_loc"], UIHandler.bar_width)
-        glUniform1f(uniforms["element_window_width_loc"], UIHandler.element_window_width)
-        glUniform4f(uniforms["current_category_loc"], UIHandler.current_category[0], UIHandler.current_category[1], UIHandler.current_category[2], UIHandler.current_category[3])
-        glUniform1f(uniforms["elements_list_height_loc"], UIHandler.elements_list_height)
-        glUniform1f(uniforms["elements_bar_percent_loc"], UIHandler.elements_bar_percent)
-        glUniform1f(uniforms["category_height_loc"], UIHandler.category_height)
 
-        glUniform1f(uniforms["menu_outer_offset_loc"], UIHandler.menu_outer_offset)
-        glUniform1f(uniforms["menu_outer_width_loc"], UIHandler.menu_outer_width)
-        glUniform1f(uniforms["menu_outer_radius_loc"], UIHandler.menu_outer_radius)
-
-        glUniform2f(uniforms["block_pos_loc"], 0, 0)
-        glUniform2f(uniforms["block_size_loc"], 0, 0)
-        glUniform4f(uniforms["block_color_loc"], 0, 0, 0, 0)
-        glUniform1i(uniforms["block_format_loc"], 0)
-        #layout image
         glUniform1i(uniforms["display_area_loc"], 0)
         glUniform1i(uniforms["is_text_loc"], 0)
 
@@ -445,11 +505,32 @@ def main():
 
         #ui text
         if scene == "game":
+            #ui
+            glUniform2f(uniforms["game_window_size_loc"], UIHandler.game_window_size[0], UIHandler.game_window_size[1])
+            glUniform1f(uniforms["padding_loc"], UIHandler.padding)
+            glUniform1f(uniforms["bar_padding_loc"], UIHandler.bar_padding)
+            glUniform1f(uniforms["bar_width_loc"], UIHandler.bar_width)
+            glUniform1f(uniforms["element_window_width_loc"], UIHandler.element_window_width)
+            glUniform4f(uniforms["current_category_loc"], UIHandler.current_category[0], UIHandler.current_category[1], UIHandler.current_category[2], UIHandler.current_category[3])
+            glUniform1f(uniforms["elements_list_height_loc"], UIHandler.elements_list_height)
+            glUniform1f(uniforms["elements_bar_percent_loc"], UIHandler.elements_bar_percent)
+            glUniform1f(uniforms["category_height_loc"], UIHandler.category_height)
+            #blocks
+            glUniform2f(uniforms["block_pos_loc"], 0, 0)
+            glUniform2f(uniforms["block_size_loc"], 0, 0)
+            glUniform4f(uniforms["block_color_loc"], 0, 0, 0, 0)
+            glUniform1i(uniforms["block_format_loc"], 0)
+            #layout image
+            glUniform1i(uniforms["display_area_loc"], 0)
+            glUniform1i(uniforms["is_text_loc"], 0)
+
             UIHandler.handle()
+
             glUniform1i(uniforms["scene_loc"], 1)
+
             game(square_VAO, uniforms, textures)
+
         elif scene == "menu":
-            glUniform1i(uniforms["scene_loc"], 0)
             menu(square_VAO, uniforms, textures)
 
         pg.display.flip()

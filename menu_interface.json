@@ -1,0 +1,70 @@
+{
+    "opening": [
+        {
+            "button_type": "goto",
+            "extra": {
+                "text": "Campanha",
+                "font": "roboto_72",
+                "color": [255, 255 ,255],
+                "pos": [20, 20],
+                "scale": [100, 100],
+                "text_scale": [0.25, 0.25],
+                "position_offset": [0, 0],
+                
+                "goto": "campaign"
+            }
+        },
+        {
+            "button_type": "goto",
+            "extra": {
+                "text": "Criativo",
+                "font": "roboto_72",
+                "color": [255, 255 ,255],
+                "pos": [20, 20],
+                "scale": [100, 100],
+                "text_scale": [0.25, 0.25],
+                "position_offset": [0, 0],
+                
+                "goto": "",
+                "active": false
+            }
+        },
+        {
+            "button_type": "goto",
+            "extra": {
+                "text": "Configurar",
+                "font": "roboto_72",
+                "color": [255, 255 ,255],
+                "pos": [20, 20],
+                "scale": [100, 100],
+                "text_scale": [0.25, 0.25],
+                "position_offset": [0, 0],
+                
+                "goto": "configurations"
+            }
+        },
+        {
+            "button_type": "goto",
+            "extra": {
+                "text": "Sair",
+                "font": "roboto_72",
+                "color": [255, 255 ,255],
+                "pos": [20, 20],
+                "scale": [100, 100],
+                "text_scale": [0.25, 0.25],
+                "position_offset": [0, 0],
+
+                "goto": ""
+            }
+        }
+    ],
+    "campaign": [
+        
+    ],
+    "settings": [
+
+    ],
+    "creative": [
+
+    ]
+}
